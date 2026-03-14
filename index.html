@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Birthday Universe</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI, sans-serif;
+}
+
+body{
+height:100vh;
+overflow:hidden;
+background:#02020a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+/* Canvas backgrounds */
+
+canvas{
+position:absolute;
+top:0;
+left:0;
+}
+
+/* Glass UI */
+
+.panel{
+position:relative;
+z-index:10;
+backdrop-filter:blur(15px);
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.2);
+padding:40px;
+border-radius:20px;
+text-align:center;
+width:420px;
+box-shadow:0 0 40px rgba(255,0,200,0.4);
+}
+
+/* Title */
+
+h1{
+font-size:42px;
+background:linear-gradient(90deg,#ff4ecd,#6f8cff);
+-webkit-background-clip:text;
+color:transparent;
+margin-bottom:10px;
+}
+
+/* Buttons */
+
+.btn{
+padding:12px 24px;
+margin:8px;
+border:none;
+border-radius:25px;
+background:linear-gradient(45deg,#ff4ecd,#6f8cff);
+color:white;
+font-size:15px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.btn:hover{
+transform:scale(1.15);
+box-shadow:0 0 20px #ff4ecd;
+}
+
+/* 3D cube */
+
+.cube{
+width:120px;
+height:120px;
+margin:25px auto;
+transform-style:preserve-3d;
+animation:spin 12s linear infinite;
+}
+
+.cube div{
+position:absolute;
+width:120px;
+height:120px;
+background:rgba(255,255,255,0.1);
+border:2px solid rgba(255,255,255,0.4);
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:22px;
+}
+
+.front{transform:translateZ(60px)}
+.back{transform:rotateY(180deg) translateZ(60px)}
+.right{transform:rotateY(90deg) translateZ(60px)}
+.left{transform:rotateY(-90deg) translateZ(60px)}
+.top{transform:rotateX(90deg) translateZ(60px)}
+.bottom{transform:rotateX(-90deg) translateZ(60px)}
+
+@keyframes spin{
+0%{transform:rotateX(0) rotateY(0)}
+100%{transform:rotateX(360deg) rotateY(360deg)}
+}
+
+/* Message popup */
+
+.popup{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%) scale(0);
+background:rgba(0,0,0,0.85);
+padding:35px;
+border-radius:20px;
+text-align:center;
+transition:0.4s;
+z-index:20;
+}
+
+.popup.show{
+transform:translate(-50%,-50%) scale(1);
+}
+
+.type{
+font-size:18px;
+margin-top:10px;
+min-height:60px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="stars"></canvas>
+<canvas id="fireworks"></canvas>
+
+<div class="panel">
+
+<h1>Happy Birthday Shinaya</h1>
+
+<div class="cube">
+<div class="front">🎂</div>
+<div class="back">🎉</div>
+<div class="right">🎁</div>
+<div class="left">✨</div>
+<div class="top">🎈</div>
+<div class="bottom">🥳</div>
+</div>
+
+<p>A new trip around the sun begins today.</p>
+
+
+<button class="btn" onclick="showMessage()">Click</button>
+
+</div>
+
+<div class="popup" id="popup">
+<h2>Birthday Transmission</h2>
+<div class="type" id="type"></div>
+<br>
+<button class="btn" onclick="closeMessage()">Close</button>
+</div>
+
+<audio id="music"
+src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+</audio>
+
+<script>
+
+/* STARFIELD */
+
+const starCanvas=document.getElementById("stars")
+const starCtx=starCanvas.getContext("2d")
+
+starCanvas.width=window.innerWidth
+starCanvas.height=window.innerHeight
+
+let stars=[]
+
+for(let i=0;i<400;i++){
+stars.push({
+x:Math.random()*starCanvas.width,
+y:Math.random()*starCanvas.height,
+r:Math.random()*2
+})
+}
+
+function animateStars(){
+
+starCtx.fillStyle="#02020a"
+starCtx.fillRect(0,0,starCanvas.width,starCanvas.height)
+
+starCtx.fillStyle="white"
+
+stars.forEach(s=>{
+starCtx.beginPath()
+starCtx.arc(s.x,s.y,s.r,0,Math.PI*2)
+starCtx.fill()
+
+s.y+=s.r
+
+if(s.y>starCanvas.height){
+s.y=0
+}
+})
+
+requestAnimationFrame(animateStars)
+
+}
+
+animateStars()
+
+/* FIREWORKS */
+
+const fwCanvas=document.getElementById("fireworks")
+const fwCtx=fwCanvas.getContext("2d")
+
+fwCanvas.width=window.innerWidth
+fwCanvas.height=window.innerHeight
+
+let particles=[]
+
+function startFireworks(){
+
+for(let i=0;i<120;i++){
+
+particles.push({
+
+x:window.innerWidth/2,
+y:window.innerHeight/2,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6,
+life:100
+
+})
+
+}
+
+}
+
+function animateFireworks(){
+
+fwCtx.clearRect(0,0,fwCanvas.width,fwCanvas.height)
+
+particles.forEach((p,i)=>{
+
+p.x+=p.vx
+p.y+=p.vy
+p.life--
+
+fwCtx.fillStyle=`hsl(${Math.random()*360},100%,60%)`
+fwCtx.fillRect(p.x,p.y,3,3)
+
+if(p.life<=0){
+particles.splice(i,1)
+}
+
+})
+
+requestAnimationFrame(animateFireworks)
+
+}
+
+animateFireworks()
+
+/* TYPEWRITER MESSAGE */
+
+const text="Happy Bday, lil sis! 🎉 Keep shining, keep smiling, and keep being the awesome you! 💖 Love you tons!"
+
+let i=0
+
+function typeWriter(){
+
+if(i<text.length){
+
+document.getElementById("type").innerHTML+=text.charAt(i)
+
+i++
+
+setTimeout(typeWriter,40)
+
+}
+
+}
+
+/* POPUP */
+
+function showMessage(){
+
+document.getElementById("popup").classList.add("show")
+
+document.getElementById("type").innerHTML=""
+
+i=0
+
+typeWriter()
+
+}
+
+function closeMessage(){
+
+document.getElementById("popup").classList.remove("show")
+
+}
+
+/* MUSIC */
+
+function toggleMusic(){
+
+let m=document.getElementById("music")
+
+if(m.paused){
+m.play()
+}else{
+m.pause()
+}
+
+}
+
+</script>
+
+</body>
+</html>
